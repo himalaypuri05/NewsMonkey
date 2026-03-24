@@ -39,9 +39,9 @@ const News = (props) => {
   };
 
   useEffect(() => {
-    document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`;
-    updateNews();
-  }, [props.category]); // important
+  document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`;
+  updateNews();
+}, [props.category, updateNews]); // important
 
   const fetchMoreData = async () => {
 
