@@ -38,10 +38,11 @@ const News = (props) => {
     props.setProgress(100);
   };
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
   document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`;
   updateNews();
-}, [props.category, updateNews]); // important
+}, [props.category]); // important
 
   const fetchMoreData = async () => {
 
