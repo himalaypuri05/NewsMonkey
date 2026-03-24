@@ -15,11 +15,10 @@ const News = (props) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
-  // ✅ SAFE + FIXED API CALL
+  // ✅ MAIN FETCH FUNCTION
   const updateNews = useCallback(async () => {
     try {
       props.setProgress(10);
-
       setLoading(true);
       setPage(1);
       setHasMore(true);
@@ -32,34 +31,38 @@ const News = (props) => {
       let parsedData = await data.json();
       props.setProgress(70);
 
-      // ✅ SAFE handling (prevents crash)
+      // ✅ HANDLE BLOCKED API / EMPTY RESPONSE
       if (!parsedData.articles) {
         setArticles([]);
         setTotalResults(0);
         setHasMore(false);
-        setLoading(false);
         return;
       }
 
-      setArticles(parsedData.articles || []);
+      setArticles(parsedData.articles);
       setTotalResults(parsedData.totalResults || 0);
-      setLoading(false);
-
-      props.setProgress(100);
     } catch (error) {
       console.error("API Error:", error);
       setArticles([]);
-      setLoading(false);
       setHasMore(false);
+    } finally {
+      setLoading(false);
+      props.setProgress(100); // ✅ always completes
     }
-  }, [props.country, props.category, props.apiKey, props.pageSize, props.setProgress]);
+  }, [
+    props.country,
+    props.category,
+    props.apiKey,
+    props.pageSize,
+    props.setProgress,
+  ]);
 
   useEffect(() => {
     document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`;
     updateNews();
   }, [props.category, updateNews]);
 
-  // ✅ SAFE INFINITE SCROLL
+  // ✅ INFINITE SCROLL
   const fetchMoreData = async () => {
     try {
       if (!articles || articles.length >= totalResults) {
@@ -93,6 +96,13 @@ const News = (props) => {
         NewsMonkey Top {capitalizeFirstLetter(props.category)} Headlines
       </h1>
 
+      {/* ✅ SHOW MESSAGE IF API FAILS */}
+      {!loading && articles.length === 0 && (
+        <h4 className="text-center text-danger">
+          ⚠️ News not available (API blocked in production)
+        </h4>
+      )}
+
       {loading && <Spinner />}
 
       <InfiniteScroll
@@ -103,19 +113,24 @@ const News = (props) => {
       >
         <div className="container">
           <div className="row">
-            {articles && articles.map((element) => (
-              <div className="col-md-4" key={element.url}>
-                <NewsItems
-                  title={element.title ? element.title.slice(0, 45) : ""}
-                  description={element.description ? element.description.slice(0, 88) : ""}
-                  imageUrl={element.urlToImage}
-                  newsUrl={element.url}
-                  source={element.source.name}
-                  author={element.author}
-                  date={element.publishedAt}
-                />
-              </div>
-            ))}
+            {articles &&
+              articles.map((element) => (
+                <div className="col-md-4" key={element.url}>
+                  <NewsItems
+                    title={element.title ? element.title.slice(0, 45) : ""}
+                    description={
+                      element.description
+                        ? element.description.slice(0, 88)
+                        : ""
+                    }
+                    imageUrl={element.urlToImage}
+                    newsUrl={element.url}
+                    source={element.source.name}
+                    author={element.author}
+                    date={element.publishedAt}
+                  />
+                </div>
+              ))}
           </div>
         </div>
       </InfiniteScroll>
