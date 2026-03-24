@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import NewsItems from "./NewsItems";
 import Spinner from "./Spinner";
 import PropTypes from "prop-types";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-const News = props => {
+const News = (props) => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalResults, setTotalResults] = useState(0);
 
-  const capitalizeFirstLetter = string => {
+  const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
-  const updateNews = async () => {
+  // ✅ FIXED: useCallback added
+  const updateNews = useCallback(async () => {
     props.setProgress(10);
 
     setLoading(true);
@@ -35,14 +36,13 @@ const News = props => {
     setLoading(false);
 
     props.setProgress(100);
-  };
+  }, [props.country, props.category, props.apiKey, props.pageSize, props.setProgress]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // ✅ FIXED: clean dependency array (no ESLint error)
   useEffect(() => {
     document.title = `${capitalizeFirstLetter(props.category)} - NewsMonkey`;
     updateNews();
-  }, [props.category]); // important
+  }, [props.category, updateNews]);
 
   const fetchMoreData = async () => {
     if (articles.length >= totalResults) {
@@ -63,8 +63,7 @@ const News = props => {
     }
 
     setPage(nextPage);
-
-    setArticles(prev => prev.concat(parsedData.articles));
+    setArticles((prev) => prev.concat(parsedData.articles));
   };
 
   return (
@@ -75,10 +74,15 @@ const News = props => {
 
       {loading && <Spinner />}
 
-      <InfiniteScroll dataLength={articles.length} next={fetchMoreData} hasMore={hasMore} loader={<Spinner />}>
+      <InfiniteScroll
+        dataLength={articles.length}
+        next={fetchMoreData}
+        hasMore={hasMore}
+        loader={<Spinner />}
+      >
         <div className="container">
           <div className="row">
-            {articles.map(element => (
+            {articles.map((element) => (
               <div className="col-md-4" key={element.url}>
                 <NewsItems
                   title={element.title ? element.title.slice(0, 45) : ""}
@@ -101,13 +105,13 @@ const News = props => {
 News.defaultProps = {
   country: "us",
   pageSize: 15,
-  category: "general"
+  category: "general",
 };
 
 News.propTypes = {
   country: PropTypes.string,
   pageSize: PropTypes.number,
-  category: PropTypes.string
+  category: PropTypes.string,
 };
 
 export default News;
