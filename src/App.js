@@ -9,11 +9,13 @@ import LoadingBar from "react-top-loading-bar";
 
 const App  = () => {
   const pageSize = 15;
-  const apiKey = process.env.REACT_APP_NEWS_API
+  // const apiKey = process.env.REACT_APP_NEWS_API
+  const apiKey = process.env.REACT_APP_GNEWS_API
   const [progress, setProgress] = useState(0);
 
     return (
       <div>
+        console.log(apiKey);
       <Router>
       <LoadingBar
        color="#f11946"
