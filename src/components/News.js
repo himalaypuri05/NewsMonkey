@@ -41,7 +41,7 @@ const News = ({
       setProgress(40);
 
       let parsedData = await data.json();
-
+      console.log(parsedData);
       setProgress(70);
 
       setArticles(parsedData.articles || []);
