@@ -4,7 +4,13 @@ import Spinner from "./Spinner";
 import PropTypes from "prop-types";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-const News = (props) => {
+const News = ({
+  country = "us",
+  pageSize = 15,
+  category = "general",
+  apiKey,
+  setProgress,
+}) => {
   const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
@@ -17,68 +23,81 @@ const News = (props) => {
   // ================= FETCH NEWS =================
 
   const updateNews = async () => {
-    props.setProgress(10);
+    try {
+      setProgress(10);
 
-    setLoading(true);
+      setLoading(true);
 
-    // ================= GNEWS API =================
-    const url = `https://gnews.io/api/v4/top-headlines?category=${props.category}&lang=en&country=${props.country}&max=${props.pageSize}&apikey=${props.apiKey}`;
+      // ================= GNEWS API WITH CORS PROXY =================
 
-    // ================= NEWSAPI =================
-    // const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page}&pageSize=${props.pageSize}`;
+      const url = `https://corsproxy.io/?https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=${country}&max=${pageSize}&apikey=${apiKey}`;
 
-    let data = await fetch(url);
+      // ================= NEWSAPI =================
 
-    props.setProgress(40);
+      // const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${page}&pageSize=${pageSize}`;
 
-    let parsedData = await data.json();
+      let data = await fetch(url);
 
-    props.setProgress(70);
+      setProgress(40);
 
-    setArticles(parsedData.articles || []);
+      let parsedData = await data.json();
 
-    // GNews uses totalArticles instead of totalResults
-    setTotalResults(parsedData.totalArticles || 0);
+      setProgress(70);
 
-    setLoading(false);
+      setArticles(parsedData.articles || []);
 
-    props.setProgress(100);
+      // GNews uses totalArticles
+      setTotalResults(parsedData.totalArticles || 0);
+
+      setLoading(false);
+
+      setProgress(100);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     document.title = `${capitalizeFirstLetter(
-      props.category
+      category
     )} - NewsMonkey`;
 
     updateNews();
 
     // eslint-disable-next-line
-  }, []);
+  }, [category]);
 
   // ================= INFINITE SCROLL =================
 
   const fetchMoreData = async () => {
-    const nextPage = page + 1;
+    try {
+      const nextPage = page + 1;
 
-    setPage(nextPage);
+      setPage(nextPage);
 
-    // ================= GNEWS API =================
-    const url = `https://gnews.io/api/v4/top-headlines?category=${props.category}&lang=en&country=${props.country}&max=${props.pageSize}&page=${nextPage}&apikey=${props.apiKey}`;
+      // ================= GNEWS API WITH CORS PROXY =================
 
-    // ================= NEWSAPI =================
-    // const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${nextPage}&pageSize=${props.pageSize}`;
+      const url = `https://corsproxy.io/?https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=${country}&max=${pageSize}&page=${nextPage}&apikey=${apiKey}`;
 
-    let data = await fetch(url);
+      // ================= NEWSAPI =================
 
-    let parsedData = await data.json();
+      // const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${nextPage}&pageSize=${pageSize}`;
 
-    if (parsedData.articles) {
-      setArticles((prevArticles) =>
-        prevArticles.concat(parsedData.articles)
-      );
+      let data = await fetch(url);
+
+      let parsedData = await data.json();
+
+      if (parsedData.articles) {
+        setArticles((prevArticles) =>
+          prevArticles.concat(parsedData.articles)
+        );
+      }
+
+      setTotalResults(parsedData.totalArticles || 0);
+    } catch (error) {
+      console.log(error);
     }
-
-    setTotalResults(parsedData.totalArticles || 0);
   };
 
   return (
@@ -87,7 +106,7 @@ const News = (props) => {
         className="text-center"
         style={{ margin: "35px 0px", marginTop: "90px" }}
       >
-        NewsMonkey - Top {capitalizeFirstLetter(props.category)} Headlines
+        NewsMonkey - Top {capitalizeFirstLetter(category)} Headlines
       </h1>
 
       {loading && <Spinner />}
@@ -95,10 +114,7 @@ const News = (props) => {
       <InfiniteScroll
         dataLength={articles.length}
         next={fetchMoreData}
-
-        // GNews free version has limited pagination
         hasMore={articles.length < totalResults}
-
         loader={<Spinner />}
       >
         <div className="container">
@@ -119,6 +135,7 @@ const News = (props) => {
                     }
 
                     // ================= GNEWS IMAGE =================
+
                     imageUrl={
                       element.image
                         ? element.image
@@ -126,6 +143,7 @@ const News = (props) => {
                     }
 
                     // ================= NEWSAPI IMAGE =================
+
                     // imageUrl={
                     //   element.urlToImage
                     //     ? element.urlToImage
@@ -145,12 +163,6 @@ const News = (props) => {
       </InfiniteScroll>
     </>
   );
-};
-
-News.defaultProps = {
-  country: "us",
-  pageSize: 8,
-  category: "general",
 };
 
 News.propTypes = {
