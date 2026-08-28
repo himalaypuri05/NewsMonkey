@@ -2,7 +2,7 @@ module.exports = async (req, res) => {
   try {
     const category = req.query.category || "general";
     const page = req.query.page || 1;
-
+    
     // const apiKey = process.env.REACT_APP_NEWS_API;
     const apiKey = process.env.REACT_APP_GNEWS_API || "YOUR_API_KEY";
 
@@ -13,6 +13,7 @@ module.exports = async (req, res) => {
     const data = await response.json();
 
     res.status(200).json(data);
+    
   } catch (error) {
     console.log(error);
 

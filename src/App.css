@@ -1,38 +1,148 @@
-.App {
-  text-align: center;
+:root {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --accent-color: #f11946;
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.App-header {
-  background-color: #282c34;
+.news-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding-bottom: 50px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.news-card {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease !important;
+}
+
+.news-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-color) !important;
+}
+
+.news-card img {
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.news-card:hover img {
+  transform: scale(1.04);
+}
+
+.news-card-body {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  padding: 1.25rem !important;
+}
+
+.news-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary) !important;
+}
+
+.news-card-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary) !important;
+  margin-bottom: 1rem;
+}
+
+.news-card-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary) !important;
+}
+
+.badge-source {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.4em 0.8em !important;
+  border-radius: 8px !important;
+}
+
+.search-input {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 20px 0 0 20px;
+  padding-left: 15px;
+}
+
+.search-input:focus {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: none;
+  border-color: var(--accent-color);
+}
+
+.search-btn {
+  border-radius: 0 20px 20px 0;
+  border-color: var(--border-color);
+  background-color: var(--accent-color);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.search-btn:hover {
+  background-color: #d11239;
+  color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.theme-toggle-btn {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 8px;
+  margin-left: 15px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.header-title {
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
 }

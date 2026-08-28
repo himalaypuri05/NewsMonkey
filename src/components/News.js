@@ -6,159 +6,145 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 const News = ({
   country = "us",
-  pageSize = 15,
+  pageSize = 12,
   category = "general",
   apiKey,
-  setProgress
+  setProgress,
+  searchQuery,
+  setSearchQuery,
 }) => {
-  const capitalizeFirstLetter = string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
+  const capitalizeFirstLetter = (string) =>
+    string.charAt(0).toUpperCase() + string.slice(1);
 
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
-  // ================= FETCH NEWS =================
-
+  // ---------------- FETCH INITIAL NEWS ----------------
   const updateNews = async () => {
     try {
       setProgress(10);
-
       setLoading(true);
 
-      // ================= VERCEL SERVER API =================
+      const baseUrl = searchQuery
+        ? "https://gnews.io/api/v4/search"
+        : "https://gnews.io/api/v4/top-headlines";
 
-      const url = `/api/news?category=${category}&page=1`;
+      const queryParams = searchQuery
+        ? `q=${encodeURIComponent(searchQuery)}`
+        : `category=${category}`;
 
-      // ================= NEWSAPI =================
+      const url = `${baseUrl}?${queryParams}&lang=en&country=${country}&max=${pageSize}&page=1&apikey=${apiKey}`;
 
-      // const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${page}&pageSize=${pageSize}`;
+      const response = await fetch(url);
+      const data = await response.json();
 
-      let data = await fetch(url);
+      setProgress(60);
 
-      setProgress(40);
-
-      let parsedData = await data.json();
-      console.log(parsedData);
-      setProgress(70);
-
-      setArticles(parsedData.articles || []);
-
-      // GNews uses totalArticles
-      setTotalResults(parsedData.totalArticles || 0);
-
-      setLoading(false);
+      setArticles(data.articles || []);
+      setTotalResults(data.totalArticles || 0);
+      setPage(1);
 
       setProgress(100);
+      setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching news:", error);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    document.title = `${capitalizeFirstLetter(category)} - NewsMonkey`;
-
+    document.title = searchQuery
+      ? `Search: ${searchQuery} - NewsMonkey`
+      : `${capitalizeFirstLetter(category)} - NewsMonkey`;
     updateNews();
-
     // eslint-disable-next-line
-  }, [category]);
+  }, [category, searchQuery]);
 
-  // ================= INFINITE SCROLL =================
-
+  // ---------------- INFINITE SCROLL ----------------
   const fetchMoreData = async () => {
     try {
       const nextPage = page + 1;
 
+      const baseUrl = searchQuery
+        ? "https://gnews.io/api/v4/search"
+        : "https://gnews.io/api/v4/top-headlines";
+
+      const queryParams = searchQuery
+        ? `q=${encodeURIComponent(searchQuery)}`
+        : `category=${category}`;
+
+      const url = `${baseUrl}?${queryParams}&lang=en&country=${country}&max=${pageSize}&page=${nextPage}&apikey=${apiKey}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      setArticles((prev) => prev.concat(data.articles || []));
+      setTotalResults(data.totalArticles || 0);
       setPage(nextPage);
-
-      // ================= VERCEL SERVER API =================
-
-      const url = `/api/news?category=${category}&page=${nextPage}`;
-
-      // ================= NEWSAPI =================
-
-      // const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}&page=${nextPage}&pageSize=${pageSize}`;
-
-      let data = await fetch(url);
-
-      let parsedData = await data.json();
-
-      if (parsedData.articles) {
-        setArticles(prevArticles =>
-          prevArticles.concat(parsedData.articles)
-        );
-      }
-
-      setTotalResults(parsedData.totalArticles || 0);
     } catch (error) {
-      console.log(error);
+      console.log("Error loading more news:", error);
     }
   };
 
   return (
     <>
-      <h1
-        className="text-center"
-        style={{ margin: "35px 0px", marginTop: "90px" }}
-      >
-        NewsMonkey - Top {capitalizeFirstLetter(category)} Headlines
-      </h1>
+      <div className="container" style={{ marginTop: "90px" }}>
+        <h1 className="text-center header-title my-4">
+          {searchQuery
+            ? `NewsMonkey - Search results for "${searchQuery}"`
+            : `NewsMonkey - Top ${capitalizeFirstLetter(category)} Headlines`}
+        </h1>
 
-      {loading && <Spinner />}
+        {searchQuery && (
+          <div className="text-center mb-4">
+            <button
+              className="btn btn-outline-danger btn-sm rounded-pill px-3"
+              onClick={() => setSearchQuery("")}
+            >
+              Clear Search & Show Top Headlines
+            </button>
+          </div>
+        )}
 
-      <InfiniteScroll
-        dataLength={articles.length}
-        next={fetchMoreData}
-        hasMore={articles.length < totalResults}
-        loader={<Spinner />}
-      >
-        <div className="container">
-          <div className="row">
-            {articles.map(element => {
-              return (
-                <div className="col-md-4 my-3" key={element.url}>
+        {loading && <Spinner />}
+
+        <InfiniteScroll
+          dataLength={articles.length}
+          next={fetchMoreData}
+          hasMore={articles.length < totalResults}
+          loader={<Spinner />}
+          style={{ overflow: "visible" }}
+        >
+          <div className="container">
+            <div className="row justify-content-center">
+              {!loading && articles.length === 0 && (
+                <div className="col-12 text-center my-5">
+                  <h3 className="text-muted">No news articles found.</h3>
+                  <p className="text-muted">Try searching for something else or check your spelling.</p>
+                </div>
+              )}
+              {articles.map((element, index) => (
+                <div className="col-md-4 my-3 d-flex align-items-stretch" key={element.url || index}>
                   <NewsItems
-                    title={
-                      element.title
-                        ? element.title.slice(0, 45)
-                        : ""
-                    }
-                    description={
-                      element.description
-                        ? element.description.slice(0, 88)
-                        : ""
-                    }
-
-                    // ================= GNEWS IMAGE =================
-
+                    title={element.title || ""}
+                    description={element.description || ""}
                     imageUrl={
-                      element.image
-                        ? element.image
-                        : "https://via.placeholder.com/300x180.png?text=No+Image"
+                      element.image ||
+                      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=600&q=80"
                     }
-
-                    // ================= NEWSAPI IMAGE =================
-
-                    // imageUrl={
-                    //   element.urlToImage
-                    //     ? element.urlToImage
-                    //     : "https://via.placeholder.com/300x180.png?text=No+Image"
-                    // }
-
                     newsUrl={element.url}
-                    author={element.author}
+                    author={element.source?.name || "Unknown"}
                     date={element.publishedAt}
-                    source={element.source.name}
+                    source={element.source?.name || "Unknown"}
                   />
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      </InfiniteScroll>
+        </InfiniteScroll>
+      </div>
     </>
   );
 };
@@ -166,7 +152,11 @@ const News = ({
 News.propTypes = {
   country: PropTypes.string,
   pageSize: PropTypes.number,
-  category: PropTypes.string
+  category: PropTypes.string,
+  apiKey: PropTypes.string.isRequired,
+  setProgress: PropTypes.func.isRequired,
+  searchQuery: PropTypes.string,
+  setSearchQuery: PropTypes.func,
 };
 
 export default News;
