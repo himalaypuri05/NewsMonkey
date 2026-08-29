@@ -1,15 +1,28 @@
 module.exports = async (req, res) => {
   try {
-    const category = req.query.category || "general";
-    const page = req.query.page || 1;
-    
-    // const apiKey = process.env.REACT_APP_NEWS_API;
-    const apiKey = process.env.REACT_APP_GNEWS_API || "YOUR_API_KEY";
+    const { q, category, country, max, page } = req.query;
+    const apiKey = process.env.REACT_APP_GNEWS_API;
 
-    const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=us&max=15&page=${page}&apikey=${apiKey}`;
+    const baseUrl = q
+      ? "https://gnews.io/api/v4/search"
+      : "https://gnews.io/api/v4/top-headlines";
+
+    const params = new URLSearchParams();
+    if (q) {
+      params.append("q", q);
+    } else {
+      params.append("category", category || "general");
+    }
+    
+    params.append("lang", "en");
+    params.append("country", country || "us");
+    params.append("max", max || "12");
+    params.append("page", page || "1");
+    params.append("apikey", apiKey);
+
+    const url = `${baseUrl}?${params.toString()}`;
 
     const response = await fetch(url);
-
     const data = await response.json();
 
     res.status(200).json(data);

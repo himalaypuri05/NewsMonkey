@@ -27,15 +27,11 @@ const News = ({
       setProgress(10);
       setLoading(true);
 
-      const baseUrl = searchQuery
-        ? "https://gnews.io/api/v4/search"
-        : "https://gnews.io/api/v4/top-headlines";
-
       const queryParams = searchQuery
         ? `q=${encodeURIComponent(searchQuery)}`
         : `category=${category}`;
 
-      const url = `${baseUrl}?${queryParams}&lang=en&country=${country}&max=${pageSize}&page=1&apikey=${apiKey}`;
+      const url = `/api/news?${queryParams}&country=${country}&max=${pageSize}&page=1`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -67,15 +63,11 @@ const News = ({
     try {
       const nextPage = page + 1;
 
-      const baseUrl = searchQuery
-        ? "https://gnews.io/api/v4/search"
-        : "https://gnews.io/api/v4/top-headlines";
-
       const queryParams = searchQuery
         ? `q=${encodeURIComponent(searchQuery)}`
         : `category=${category}`;
 
-      const url = `${baseUrl}?${queryParams}&lang=en&country=${country}&max=${pageSize}&page=${nextPage}&apikey=${apiKey}`;
+      const url = `/api/news?${queryParams}&country=${country}&max=${pageSize}&page=${nextPage}`;
 
       const response = await fetch(url);
       const data = await response.json();
